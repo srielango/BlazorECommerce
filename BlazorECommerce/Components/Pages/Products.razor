@@ -1,0 +1,30 @@
+﻿@page "/"
+
+@rendermode InteractiveServer
+
+@using BlazorECommerce.Components
+@using BlazorECommerce.Dtos
+@using BlazorECommerce.Services
+@using MudBlazor
+
+@inject IProductService ProductService
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudGrid Justify="Justify.Center" Spacing="2">
+        @foreach (var product in products)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <ProductCard Product="product" />
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private List<ProductDto> products = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetAllProductsAsync();
+    }
+}

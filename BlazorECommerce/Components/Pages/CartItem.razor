@@ -1,0 +1,73 @@
+﻿@page "/cart"
+
+@using BlazorECommerce.Dtos
+@inject ICartService CartService
+@rendermode InteractiveServer
+
+<h3>Your Cart</h3>
+
+@if(!cartItems.Any())
+{
+    <MudText Color="Color.Error">Your cart is empty.</MudText>
+}
+else
+{
+    <MudTable Items="@cartItems" Hover="true" Dense="true" >
+        <HeaderContent>
+            <MudTh>Image</MudTh>
+            <MudTh>Product</MudTh>
+            <MudTh>Price</MudTh>
+            <MudTh>Quantity</MudTh>
+            <MudTh>Total</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd><MudAvatar Image="@context.ImageUrl" Size="Size.Medium" /></MudTd>
+            <MudTd DataLabel="Product">@context.ProductName</MudTd>
+            <MudTd DataLabel="Price">@($"${@context.UnitPrice}")</MudTd>
+            <MudTd DataLabel="Quantity">@context.Quantity</MudTd>
+            <MudTd DataLabel="Quantity">@context.TotalPrice</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@(() => IncrementQuantity(context.ProductId))" Title="Increase Quantity" />
+                <MudIconButton Icon="@Icons.Material.Filled.Remove" Color="Color.Primary" OnClick="@(() => DecrementQuantity(context.ProductId))" Title="Decrease Quantity" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveItem(context.ProductId))" Title="Remove from Cart" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+    <div class="mt-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => CartService.ClearCartAsync())">Clear Cart</MudButton>
+    </div>
+}
+
+
+@code {
+    private List<CartItemDto> cartItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        cartItems = await CartService.GetCartItemsAsync();
+    }
+
+    private void RemoveItem(int productId)
+    {
+        CartService.RemoveFromCart(productId);
+        RefreshCart(); // Refresh the cart after item removal
+    }
+
+    private void RefreshCart()
+    {
+        cartItems = CartService.GetCartItems();
+        StateHasChanged(); // Refresh the UI after cart update
+    }
+
+    private void IncrementQuantity(int productId)
+    {
+        CartService.IncrementQuantity(productId);
+        RefreshCart(); // Refresh the cart after incrementing quantity
+    }
+    private void DecrementQuantity(int productId)
+    {
+        CartService.DecrementQuantity(productId);
+        RefreshCart(); // Refresh the cart after decrementing quantity
+    }
+}

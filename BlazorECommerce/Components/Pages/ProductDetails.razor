@@ -1,0 +1,47 @@
+﻿@page "/productdetails/{id:int}"
+@using BlazorECommerce.Dtos
+@using BlazorECommerce.Services
+@using MudBlazor
+@inject IProductService ProductService
+@inject ICartService CartService
+@inject ISnackbar Snackbar;
+
+@if(product is null)
+{
+    <MudText Color="Color.Error">Product not found</MudText>
+}
+else
+{
+    <MudPaper Class="pa-4" Elevation="4">
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudImage Src="@product.ImageUrl" Alt="@product.Name" Width="100" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.h4">@product.Name</MudText>
+                <MudText Typo="Typo.body1" Class="my-2">@product.Description</MudText>
+                <MudText Typo="Typo.h5" Color="Color.Secondary">@($"${product.Price}")</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-3" OnClick="@AddToCart">Add to Cart</MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private ProductDto? product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetProductByIdAsync(Id);
+    }
+
+    private async Task AddToCart()
+    {
+        await CartService.AddToCartAsync(product!);
+        Snackbar.Add($"{product!.Name} added to cart", Severity.Success);
+    }
+}
