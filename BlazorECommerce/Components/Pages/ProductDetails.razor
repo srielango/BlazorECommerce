@@ -5,6 +5,8 @@
 @inject IProductService ProductService
 @inject ICartService CartService
 @inject ISnackbar Snackbar;
+@inject UserService UserService;
+@inject NavigationManager Navigation;
 
 @if(product is null)
 {
@@ -41,6 +43,12 @@ else
 
     private async Task AddToCart()
     {
+        if(!UserService.IsLoggedIn)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
         await CartService.AddToCartAsync(product!);
         Snackbar.Add($"{product!.Name} added to cart", Severity.Success);
     }

@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject ICartService CartService
 @inject ISnackbar Snackbar;
+@inject UserService UserService;
 
 <MudCard Class="ma-2" Style="height: 100%; cursor:pointer;" @onclick="@(e => GoToDetails(e))">
     <MudCardMedia Image="@Product.ImageUrl" Height="200" />
@@ -28,6 +29,12 @@
     }
     private void AddToCart(MouseEventArgs args)
     {
+        if(!UserService.IsLoggedIn)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
         CartService.AddToCartAsync(Product);
         Snackbar.Add($"{Product.Name} added to cart", Severity.Success);
     }

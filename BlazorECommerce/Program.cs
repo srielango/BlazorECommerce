@@ -13,6 +13,8 @@ builder.Services.AddMudServices();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddSingleton<CartState>();
 
+builder.Services.AddSingleton<UserService>();
+
 builder.Services.AddSingleton<ICartService, CartService>();
 
 var app = builder.Build();

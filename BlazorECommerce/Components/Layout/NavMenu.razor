@@ -3,6 +3,7 @@
 
 @implements IAsyncDisposable
 @inject CartState CartState
+@inject UserService UserService
 
 @rendermode InteractiveServer
 
@@ -14,6 +15,16 @@
                   Class="mr-2" />
         <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" />
     </MudIconButton>
+    @if(UserService.IsLoggedIn)
+    {
+        <MudText Class="mr-2">Hello, @UserService.CurrentUser!</MudText>
+        <MudButton OnClick="@Logout" Color="Color.Secondary" Variant="Variant.Text">Logout</MudButton>
+    }
+    else
+    {
+        <MudButton OnClick="@(() => Navigation.NavigateTo("/login"))" Color="Color.Tertiary" Variant="Variant.Text">Login</MudButton>
+    }
+
 </MudAppBar>
 
 @code {
@@ -37,5 +48,11 @@
     {
         CartState.OnChange -= OnCartChanged;
         return ValueTask.CompletedTask;
+    }
+
+    public void Logout()
+    {
+        UserService.Logout();
+        Navigation.NavigateTo("/");
     }
 }

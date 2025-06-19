@@ -2,6 +2,9 @@
 
 @using BlazorECommerce.Dtos
 @inject ICartService CartService
+@inject UserService UserService
+@inject NavigationManager Navigation
+
 @rendermode InteractiveServer
 
 <h3>Your Cart</h3>
@@ -36,6 +39,7 @@ else
     </MudTable>
     <div class="mt-4">
         <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => CartService.ClearCartAsync())">Clear Cart</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-3" OnClick="@GoToCheckout">Checkout</MudButton>
     </div>
 }
 
@@ -69,5 +73,17 @@ else
     {
         CartService.DecrementQuantity(productId);
         RefreshCart(); // Refresh the cart after decrementing quantity
+    }
+
+    private void GoToCheckout()
+    {
+        if(!UserService.IsLoggedIn)
+        {
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            Navigation.NavigateTo("/checkout");
+        }
     }
 }
