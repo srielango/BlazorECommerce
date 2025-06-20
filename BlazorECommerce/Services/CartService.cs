@@ -27,12 +27,10 @@ public class CartService : ICartService
         var existingItem = _cartItems.FirstOrDefault(i => i.ProductId == item.Id);
         if (existingItem != null)
         {
-            // If the item already exists, increase the quantity
             existingItem.Quantity++;
         }
         else
         {
-            // Otherwise, add the new item to the cart
             _cartItems.Add(new CartItemDto
             {
                 ProductId = item.Id,

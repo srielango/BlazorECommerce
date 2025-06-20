@@ -1,0 +1,50 @@
+﻿@page "/register"
+@using BlazorECommerce.Models
+@using System.ComponentModel.DataAnnotations
+
+@inject NavigationManager Navigation
+@inject UserService UserService
+@rendermode InteractiveServer
+
+<MudPaper Class="pa-4 max-w-sm mx-auto" MaxWidth="400px">
+    <EditForm Model="@registerRequest" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator/>
+        <MudText Typo="Typo.h5" Class="mb-4">Register</MudText>
+        
+        <MudTextField @bind-Value="registerRequest.Name" Label="Name" For="@(() => registerRequest.Name)"/>
+        <MudTextField @bind-Value="registerRequest.Email" Label="Email" Type="InputType.Email" For="@(() => registerRequest.Email)" />
+        <MudTextField @bind-Value="registerRequest.Password" Label="Password" Type="InputType.Password" For="@(() => registerRequest.Password)" />
+        <MudTextField @bind-Value="registerRequest.ConfirmPassword" Label="Confirm Password" Type="InputType.Password" For="@(() => registerRequest.ConfirmPassword)" />
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Register</MudButton>
+        
+        @if (errorVisible)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-2">Registration failed. Please try again.</MudAlert>
+        }
+    </EditForm>
+
+    <MudText Class="mt-2">
+        Already have an account? <MudLink Href="/login">Login here</MudLink>.
+    </MudText>
+</MudPaper>
+
+@code {
+    private RegisterRequest registerRequest = new RegisterRequest();
+    private bool errorVisible = false;
+
+    private async Task OnValidSubmit()
+    {
+        errorVisible = false;
+
+        var result = await UserService.RegisterAsync(registerRequest);
+        if (result)
+        {
+            await UserService.LoginAsync(registerRequest.Email, registerRequest.Password);
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            errorVisible = true;
+        }
+    }
+}

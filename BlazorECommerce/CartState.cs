@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-
-namespace BlazorECommerce
+﻿namespace BlazorECommerce
 {
     public class CartState
     {
