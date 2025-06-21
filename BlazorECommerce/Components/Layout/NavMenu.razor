@@ -50,9 +50,9 @@
         return ValueTask.CompletedTask;
     }
 
-    public void Logout()
+    public async Task Logout()
     {
-        UserService.Logout();
+        await UserService.Logout();
         Navigation.NavigateTo("/");
     }
 }

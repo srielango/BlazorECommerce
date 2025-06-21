@@ -37,7 +37,7 @@ public class CartService : ICartService
                 ProductName = item.Name,
                 UnitPrice = item.Price,
                 Quantity = 1,
-                ImageUrl = item.ImageUrl
+                ImageUrl = item.ImageFile
             });
         }
 

@@ -5,24 +5,31 @@ namespace BlazorECommerce.Services;
 
 public class ProductService : IProductService
 {
-    private readonly List<ProductDto> _products;
+    private readonly IConfiguration _configuration;
 
-    public ProductService()
+    //private readonly List<ProductDto> _products;
+    private readonly ApiClient _apiClient;
+
+    public ProductService(ApiClient apiClient, IConfiguration configuration)
     {
-        _products = SampleProductData.GetAll();
-    }
-    public Task<List<ProductDto>> GetAllProductsAsync()
-    {
-        return Task.FromResult(_products);
+        _apiClient = apiClient;
+        _configuration = configuration;
     }
 
-    public Task<ProductDto> GetProductByIdAsync(int id)
+    public async Task<List<ProductDto>> GetAllProductsAsync()
     {
-        var product = _products.FirstOrDefault(p => p.Id == id);
-        if (product == null)
+        var products = await _apiClient.GetAsync<List<ProductDto>>("catalogapi/products");
+        foreach(var product in products)
         {
-            throw new KeyNotFoundException($"Product with ID {id} not found.");
+            product.ImageFile = _configuration["ApiBaseUrl"] + "catalogapi" + product.ImageFile;
         }
-        return Task.FromResult(product);
+        return products;
+    }
+
+    public async Task<ProductDto> GetProductByIdAsync(int id)
+    {
+        var product = await _apiClient.GetAsync<ProductDto>($"catalogapi/products/{id}");
+        product.ImageFile = _configuration["ApiBaseUrl"] + "catalogapi" + product.ImageFile;
+        return product;
     }
 }

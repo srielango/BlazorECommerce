@@ -6,7 +6,7 @@
 <h3>Login</h3>
 
 <MudPaper Class="pa-4 max-w-sm mx-auto" MaxWidth="400px">
-    <MudTextField @bind-Value="_username" Label="Username" Required="true" Margin="Margin.Dense" />"
+    <MudTextField @bind-Value="_email" Label="Email" Required="true" Margin="Margin.Dense" />"
     <MudTextField @bind-Value="_password" Label="Password" Type="InputType.Password" Required="true" Margin="Margin.Dense" />
     <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="HandleLogin">Login</MudButton>
     <MudText Color="Color.Error" Class="mt-2">@_errorMessage</MudText>
@@ -17,7 +17,7 @@
 </MudPaper>
 
 @code {
-    private string _username = string.Empty;
+    private string _email = string.Empty;
     private string _password = string.Empty;
     private string _errorMessage = string.Empty;
 
@@ -25,7 +25,7 @@
     {
         _errorMessage = string.Empty;
 
-        if (await UserService.LoginAsync(_username, _password))
+        if (await UserService.LoginAsync(_email, _password))
         {
             Navigation.NavigateTo("/"); // Redirect to home page on successful login
         }
