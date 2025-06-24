@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace BlazorECommerce.Dtos
+﻿namespace BlazorECommerce.Dtos
 {
     public class ProductDto
     {

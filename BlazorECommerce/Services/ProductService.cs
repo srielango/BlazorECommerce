@@ -7,7 +7,6 @@ public class ProductService : IProductService
 {
     private readonly IConfiguration _configuration;
 
-    //private readonly List<ProductDto> _products;
     private readonly ApiClient _apiClient;
 
     public ProductService(ApiClient apiClient, IConfiguration configuration)

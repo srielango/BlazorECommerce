@@ -1,6 +1,8 @@
 using BlazorECommerce;
 using BlazorECommerce.Components;
 using BlazorECommerce.Services;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddBlazoredLocalStorage();
+
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 builder.Services.AddMudServices();
 builder.Services.AddHttpClient<ApiClient>(client =>
@@ -18,9 +25,9 @@ builder.Services.AddHttpClient<ApiClient>(client =>
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddSingleton<CartState>();
 
-builder.Services.AddSingleton<UserService>();
+builder.Services.AddScoped<UserService>();
 
-builder.Services.AddSingleton<ICartService, CartService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 var app = builder.Build();
 
@@ -28,7 +35,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

@@ -8,8 +8,8 @@ namespace BlazorECommerce.Services
         Task AddToCartAsync(ProductDto item);
         Task ClearCartAsync();
         List<CartItemDto> GetCartItems();
-        void RemoveFromCart(int productId);
-        void IncrementQuantity(int productId);
-        void DecrementQuantity(int productId);
+        Task RemoveFromCartAsync(string productName);
+        Task IncrementQuantity(string productName);
+        Task DecrementQuantity(string productName);
     }
 }

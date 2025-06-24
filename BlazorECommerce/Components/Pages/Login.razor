@@ -27,7 +27,7 @@
 
         if (await UserService.LoginAsync(_email, _password))
         {
-            Navigation.NavigateTo("/"); // Redirect to home page on successful login
+            Navigation.NavigateTo("/");
         }
         else
         {

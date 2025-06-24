@@ -1,80 +1,97 @@
 ﻿using BlazorECommerce.Dtos;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace BlazorECommerce.Services;
 
 public class CartService : ICartService
 {
-    private readonly List<CartItemDto> _cartItems = new();
     private readonly CartState _cartState;
+    private readonly ApiClient _apiClient;
+    private readonly CustomAuthenticationStateProvider _authProvider;
 
-    public CartService(CartState cartState)
+    private string _userName = string.Empty;
+
+    public CartService(CartState cartState, ApiClient apiClient, AuthenticationStateProvider authProvider)
     {
         _cartState = cartState;
+        _apiClient = apiClient;
+        _authProvider = (CustomAuthenticationStateProvider)authProvider;
     }
 
-    public Task<List<CartItemDto>> GetCartItemsAsync()
+    public async Task<List<CartItemDto>> GetCartItemsAsync()
     {
-        return Task.FromResult(_cartItems);
+        await EnsureUserNameAsync();
+        var cart = await GetCartAsync();
+        return cart?.Items ?? new List<CartItemDto>();
     }
-
     public List<CartItemDto> GetCartItems()
     {
-        return _cartItems;
+        var task = GetCartItemsAsync();
+        return task.Result;
     }
 
-    public Task AddToCartAsync(ProductDto item)
+    public async Task AddToCartAsync(ProductDto item)
     {
-        var existingItem = _cartItems.FirstOrDefault(i => i.ProductId == item.Id);
+        await EnsureUserNameAsync();
+        var cart = await GetOrCreateCartAsync();
+
+        var existingItem = cart.Items.FirstOrDefault(i => i.ProductName == item.Name);
         if (existingItem != null)
         {
             existingItem.Quantity++;
         }
         else
         {
-            _cartItems.Add(new CartItemDto
+            cart.Items.Add(new CartItemDto
             {
-                ProductId = item.Id,
                 ProductName = item.Name,
-                UnitPrice = item.Price,
+                Price = item.Price,
                 Quantity = 1,
                 ImageUrl = item.ImageFile
             });
         }
 
-        _cartState.NotifyStateChanged();
-
-        return Task.CompletedTask;
-    }
-    public Task ClearCartAsync()
-    {
-        _cartItems.Clear();
-        _cartState.NotifyStateChanged();
-        return Task.CompletedTask;
+        await _apiClient.PostAsync($"basketapi/basket/{_userName}", cart, await GetAccessTokenAsync());
+        await _cartState.NotifyStateChanged();
     }
 
-    public void RemoveFromCart(int productId)
+    public async Task ClearCartAsync()
     {
-        var item = _cartItems.FirstOrDefault(i => i.ProductId == productId);
+        await EnsureUserNameAsync();
+        await _apiClient.DeleteAsync($"basketapi/basket/{_userName}", await GetAccessTokenAsync());
+        await _cartState.NotifyStateChanged();
+    }
+
+    public async Task RemoveFromCartAsync(string productName)
+    {
+        var cart = await GetCartAsync();
+        var item = cart.Items.FirstOrDefault(i => i.ProductName == productName);
         if (item != null)
         {
-            _cartItems.Remove(item);
+            cart.Items.Remove(item);
         }
-        _cartState.NotifyStateChanged();
+
+        await _apiClient.PostAsync($"basketapi/basket/{_userName}", cart, await GetAccessTokenAsync());
+        await _cartState.NotifyStateChanged();
     }
 
-    public void IncrementQuantity(int productId)
+    public async Task IncrementQuantity(string productName)
     {
-        var item = _cartItems.FirstOrDefault(i => i.ProductId == productId);
+        var cart = await GetCartAsync();
+        var item = cart.Items.FirstOrDefault(i => i.ProductName == productName);
         if (item != null)
         {
             item.Quantity++;
         }
-        _cartState.NotifyStateChanged();
+        await _apiClient.PostAsync($"basketapi/basket/{_userName}", cart, await GetAccessTokenAsync());
+        await _cartState.NotifyStateChanged();
     }
 
-    public void DecrementQuantity(int productId)
+    public async Task DecrementQuantity(string productName)
     {
-        var item = _cartItems.FirstOrDefault(i => i.ProductId == productId);
+        var cart = await GetCartAsync();
+        var item = cart.Items.FirstOrDefault(i => i.ProductName == productName);
+
         if (item != null)
         {
             if (item.Quantity > 1)
@@ -83,9 +100,46 @@ public class CartService : ICartService
             }
             else
             {
-                _cartItems.Remove(item);
+                cart.Items.Remove(item);
             }
-            _cartState.NotifyStateChanged();
         }
+        await _apiClient.PostAsync($"basketapi/basket/{_userName}", cart, await GetAccessTokenAsync());
+        await _cartState.NotifyStateChanged();
+
+    }
+
+    private async Task<string?> GetAccessTokenAsync()
+    {
+        var authState = await _authProvider.GetAuthenticationStateAsync();
+        if(authState.User.Identity?.IsAuthenticated == true)
+        {
+            return _authProvider.AccessToken;
+        }
+        return null;
+    }
+
+
+    private async Task<ShoppingCartDto> GetOrCreateCartAsync()
+    {
+        return await GetCartAsync() ?? new ShoppingCartDto
+        {
+            UserName = _userName,
+            Items = new List<CartItemDto>()
+        };
+    }
+
+    private async Task<ShoppingCartDto> GetCartAsync()
+    {
+        await EnsureUserNameAsync();
+        var cart = await _apiClient.GetAsync<ShoppingCartDto>($"basketapi/basket/{_userName}", await GetAccessTokenAsync());
+        return cart ?? new ShoppingCartDto { UserName = _userName, Items = new List<CartItemDto>() };
+    }
+    private async Task EnsureUserNameAsync()
+    {
+        if(string.IsNullOrEmpty(_userName))
+        {
+            _userName = "srielango@gmail.com";
+        }
+        await Task.CompletedTask;
     }
 }

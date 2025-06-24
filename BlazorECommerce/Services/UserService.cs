@@ -1,50 +1,33 @@
 ﻿using BlazorECommerce.Models;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Text.Json;
 
 namespace BlazorECommerce.Services
 {
     public class UserService
     {
-        //private readonly Dictionary<string, UserDto> _users = new();
-
         private readonly ApiClient _apiClient;
-        private readonly ICartService _cartService;
-        public UserService(ApiClient apiClient, ICartService cartService)
-        {
-            _apiClient = apiClient;
-            _cartService = cartService;
-        }
-
+        private readonly CustomAuthenticationStateProvider _authenticationStateProvider;
         public string? CurrentUser { get; private set; }
         public bool IsLoggedIn => !string.IsNullOrEmpty(CurrentUser);
+        public UserService(ApiClient apiClient, AuthenticationStateProvider authenticationStateProvider)
+        {
+            _apiClient = apiClient;
+            _authenticationStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        }
 
         public async Task<bool> RegisterAsync(RegisterRequest request)
         {
             var response = await _apiClient.PostRawAsync("api/auth/register", request);
             return response.IsSuccessStatusCode;
-
-            //if(_users.ContainsKey(request.Email))
-            //    return Task.FromResult(false);
-
-            //var user = new UserDto
-            //{
-            //    Email = request.Email,
-            //    Name = request.Name,
-            //    Password = request.Password,
-            //    Role = "Customer",
-            //    Token = Guid.NewGuid().ToString()
-            //};
-
-            //_users[request.Email] = user;
-            //return Task.FromResult(true);
         }
 
         public async Task<bool> LoginAsync(string email, string password)
         {
             var response = await _apiClient.GetAsync<JsonElement>($"api/auth/login?email={email}&password={password}");
             var token = response.GetProperty("accessToken").GetString();
+            await _authenticationStateProvider.MarkUserAsAuthenticated(email, token!);
 
-            _apiClient.SetAccessToken(token);
             CurrentUser = email;
             return true;
         }
@@ -52,8 +35,8 @@ namespace BlazorECommerce.Services
         public async Task Logout()
         {
             CurrentUser = null;
-            await _cartService.ClearCartAsync();
-            _apiClient.SetAccessToken(null);
+            await _apiClient.DeleteAsync($"basketapi/basket/{CurrentUser}");
+            await _authenticationStateProvider.MarkUserAsLoggedOut();
         }
     }
 }

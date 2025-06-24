@@ -27,13 +27,13 @@ else
         <RowTemplate>
             <MudTd><MudAvatar Image="@context.ImageUrl" Size="Size.Medium" /></MudTd>
             <MudTd DataLabel="Product">@context.ProductName</MudTd>
-            <MudTd DataLabel="Price">@($"${@context.UnitPrice}")</MudTd>
+            <MudTd DataLabel="Price">@($"${@context.Price}")</MudTd>
             <MudTd DataLabel="Quantity">@context.Quantity</MudTd>
             <MudTd DataLabel="Quantity">@context.TotalPrice</MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@(() => IncrementQuantity(context.ProductId))" Title="Increase Quantity" />
-                <MudIconButton Icon="@Icons.Material.Filled.Remove" Color="Color.Primary" OnClick="@(() => DecrementQuantity(context.ProductId))" Title="Decrease Quantity" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveItem(context.ProductId))" Title="Remove from Cart" />
+                <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@(() => IncrementQuantity(context.ProductName))" Title="Increase Quantity" />
+                <MudIconButton Icon="@Icons.Material.Filled.Remove" Color="Color.Primary" OnClick="@(() => DecrementQuantity(context.ProductName))" Title="Decrease Quantity" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveItem(context.ProductName))" Title="Remove from Cart" />
             </MudTd>
         </RowTemplate>
     </MudTable>
@@ -52,27 +52,27 @@ else
         cartItems = await CartService.GetCartItemsAsync();
     }
 
-    private void RemoveItem(int productId)
+    private void RemoveItem(string productName)
     {
-        CartService.RemoveFromCart(productId);
-        RefreshCart(); // Refresh the cart after item removal
+        CartService.RemoveFromCartAsync(productName);
+        RefreshCart();
     }
 
     private void RefreshCart()
     {
         cartItems = CartService.GetCartItems();
-        StateHasChanged(); // Refresh the UI after cart update
+        StateHasChanged();
     }
 
-    private void IncrementQuantity(int productId)
+    private void IncrementQuantity(string productName)
     {
-        CartService.IncrementQuantity(productId);
-        RefreshCart(); // Refresh the cart after incrementing quantity
+        CartService.IncrementQuantity(productName);
+        RefreshCart();
     }
-    private void DecrementQuantity(int productId)
+    private void DecrementQuantity(string productName)
     {
-        CartService.DecrementQuantity(productId);
-        RefreshCart(); // Refresh the cart after decrementing quantity
+        CartService.DecrementQuantity(productName);
+        RefreshCart();
     }
 
     private void GoToCheckout()
