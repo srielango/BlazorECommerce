@@ -11,5 +11,6 @@ namespace BlazorECommerce.Services
         Task RemoveFromCartAsync(string productName);
         Task IncrementQuantity(string productName);
         Task DecrementQuantity(string productName);
+        Task PlaceOrderAsync();
     }
 }

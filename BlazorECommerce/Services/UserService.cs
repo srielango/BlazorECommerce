@@ -9,7 +9,6 @@ namespace BlazorECommerce.Services
         private readonly ApiClient _apiClient;
         private readonly CustomAuthenticationStateProvider _authenticationStateProvider;
         public string? CurrentUser { get; private set; }
-        public bool IsLoggedIn => !string.IsNullOrEmpty(CurrentUser);
         public UserService(ApiClient apiClient, AuthenticationStateProvider authenticationStateProvider)
         {
             _apiClient = apiClient;
@@ -27,7 +26,6 @@ namespace BlazorECommerce.Services
             var response = await _apiClient.GetAsync<JsonElement>($"api/auth/login?email={email}&password={password}");
             var token = response.GetProperty("accessToken").GetString();
             await _authenticationStateProvider.MarkUserAsAuthenticated(email, token!);
-
             CurrentUser = email;
             return true;
         }

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using Blazored.LocalStorage;
-using System.Threading.Tasks;
 
 namespace BlazorECommerce
 {
@@ -16,7 +15,7 @@ namespace BlazorECommerce
         }
 
         public string? AccessToken { get; private set; }
-
+        public bool IsLoggedIn => !string.IsNullOrEmpty(AccessToken);
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var savedUser = await _localStorage.GetItemAsync<string>("authUser");

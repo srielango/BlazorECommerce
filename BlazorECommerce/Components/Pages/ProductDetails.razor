@@ -5,8 +5,8 @@
 @inject IProductService ProductService
 @inject ICartService CartService
 @inject ISnackbar Snackbar;
-@inject UserService UserService;
 @inject NavigationManager Navigation;
+@inject AuthenticationStateProvider authProvider
 
 @if(product is null)
 {
@@ -43,7 +43,7 @@ else
 
     private async Task AddToCart()
     {
-        if(!UserService.IsLoggedIn)
+        if(!(authProvider as CustomAuthenticationStateProvider).IsLoggedIn)
         {
             Navigation.NavigateTo("/login");
             return;

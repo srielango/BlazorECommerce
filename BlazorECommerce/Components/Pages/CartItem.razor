@@ -4,6 +4,7 @@
 @inject ICartService CartService
 @inject UserService UserService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider authProvider
 
 @rendermode InteractiveServer
 
@@ -77,7 +78,7 @@ else
 
     private void GoToCheckout()
     {
-        if(!UserService.IsLoggedIn)
+        if (!(authProvider as CustomAuthenticationStateProvider).IsLoggedIn)
         {
             Navigation.NavigateTo("/login");
         }

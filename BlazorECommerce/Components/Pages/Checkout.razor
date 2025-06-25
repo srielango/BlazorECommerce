@@ -1,11 +1,11 @@
 ﻿@page "/checkout"
 @inject ICartService CartService
-@inject UserService UserService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider authProvider
 
 @rendermode InteractiveServer
 
-@if(!UserService.IsLoggedIn)
+@if (!(authProvider as CustomAuthenticationStateProvider).IsLoggedIn)
 {
     Navigation.NavigateTo("/login");
 }

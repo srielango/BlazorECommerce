@@ -1,5 +1,72 @@
-﻿<h3>Orders</h3>
+﻿@page "/orders"
+@inject ICartService CartService
+@inject NavigationManager NavigationManager
+
+<h1 class="text-2xl font-bold mb-4">Checkout</h1>
+
+<EditForm Model="order" OnValidSubmit="PlaceOrder">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <!-- Billing Information -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <InputText @bind-Value="order.FirstName" placeholder="First Name" class="form-input w-full" />
+        <InputText @bind-Value="order.LastName" placeholder="Last Name" class="form-input w-full" />
+        <InputText @bind-Value="order.EmailAddress" placeholder="Email Address" class="form-input w-full" />
+        <InputText @bind-Value="order.AddressLine" placeholder="Address Line" class="form-input w-full" />
+        <InputText @bind-Value="order.Country" placeholder="Country" class="form-input w-full" />
+        <InputText @bind-Value="order.State" placeholder="State" class="form-input w-full" />
+        <InputText @bind-Value="order.ZipCode" placeholder="Zip Code" class="form-input w-full" />
+    </div>
+
+    <!-- Payment Information -->
+    <h2 class="text-xl font-semibold mb-2">Payment Details</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <InputText @bind-Value="order.CardName" placeholder="Card Name" class="form-input w-full" />
+        <InputText @bind-Value="order.CardNumber" placeholder="Card Number" class="form-input w-full" />
+        <InputText @bind-Value="order.Expiration" placeholder="Expiration (MM/YY)" class="form-input w-full" />
+        <InputText @bind-Value="order.CVV" placeholder="CVV" class="form-input w-full" />
+    </div>
+
+    <!-- Payment Method (example radio selection) -->
+    <div class="mb-6">
+        <InputRadioGroup @bind-bind-Value="order.PaymentMethod" TValue="int">
+            <label class="mr-4">
+                <InputRadio Value="1" /> Credit Card
+            </label>
+            <label class="mr-4">
+                <InputRadio Value="2" /> Debit Card
+            </label>
+            <label>
+                <InputRadio Value="3" /> PayPal
+            </label>
+        </InputRadioGroup>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-primary">Place Order</button>
+</EditForm>
 
 @code {
+    private OrderDto order = new();
+    private List<CartItemDto> cartItems = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        cartItems = await CartService.GetCartItemsAsync();
+        order.TotalPrice = cartItems.Sum(x => x.Price * x.Quantity);
+    }
+
+    private async Task PlaceOrder()
+    {
+        try
+        {
+            await CartService.PlaceOrderAsync();
+            NavigationManager.NavigateTo("/catalog");
+        }
+        catch (Exception ex)
+        {
+            // Handle error (e.g. show message)
+        }
+    }
 }

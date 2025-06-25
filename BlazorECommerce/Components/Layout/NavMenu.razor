@@ -1,52 +1,52 @@
-﻿@inject ICartService CartService
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject ICartService CartService
 @inject NavigationManager Navigation
+@inject CartState CartState
+@* @inject CustomAuthenticationStateProvider authProvider *@
 
 @implements IAsyncDisposable
-@inject CartState CartState
-@inject UserService UserService
-
 @rendermode InteractiveServer
 
 <MudAppBar Elevation="1" Color="Color.Primary">
     <MudText Typo="Typo.h6" Class="ml-2">Blazor E-Commerce</MudText>
     <MudSpacer />
     <MudIconButton Color="Color.Inherit" OnClick="@GoToCart">
-        <MudBadge Content="@cartItemCount" Color="Color.Error"
-                  Class="mr-2" />
+        <MudBadge Content="@cartItemCount" Color="Color.Error" Class="mr-2" />
         <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" />
     </MudIconButton>
-    @if(UserService.IsLoggedIn)
-    {
-        <MudText Class="mr-2">Hello, @UserService.CurrentUser!</MudText>
-        <MudButton OnClick="@Logout" Color="Color.Secondary" Variant="Variant.Text">Logout</MudButton>
-    }
-    else
-    {
-        <MudButton OnClick="@(() => Navigation.NavigateTo("/login"))" Color="Color.Tertiary" Variant="Variant.Text">Login</MudButton>
-    }
 
+    <AuthorizeView Context="authState">
+        <Authorized>
+            <MudText Class="mr-2">Hello, @authState.User.Identity?.Name</MudText>
+            <MudButton OnClick="@Logout" Color="Color.Secondary" Variant="Variant.Text">Logout</MudButton>
+        </Authorized>
+        <NotAuthorized>
+            <MudButton OnClick="@(() => Navigation.NavigateTo("/login"))" Color="Color.Tertiary" Variant="Variant.Text">Login</MudButton>
+        </NotAuthorized>
+    </AuthorizeView>
 </MudAppBar>
 
 @code {
-    private int cartItemCount = 0;
+    private int cartItemCount;
 
     protected override void OnInitialized()
     {
         CartState.OnChange += OnCartChanged;
-        if(UserService.IsLoggedIn)
-        {
-            cartItemCount = CartService.GetCartItems().Count;
-        }
+        _ = LoadCartCountAsync();
     }
 
-    private void GoToCart()
+    private async Task LoadCartCountAsync()
     {
-        Navigation.NavigateTo("/cart");
+        var items = await CartService.GetCartItemsAsync();
+        cartItemCount = items.Count;
+        await InvokeAsync(StateHasChanged);
     }
+
+    private void GoToCart() => Navigation.NavigateTo("/cart");
 
     private async Task OnCartChanged()
     {
-        await InvokeAsync(StateHasChanged);
+        await LoadCartCountAsync();
     }
 
     public ValueTask DisposeAsync()
@@ -55,9 +55,10 @@
         return ValueTask.CompletedTask;
     }
 
-    public async Task Logout()
+    private async Task Logout()
     {
-        await UserService.Logout();
+        await CartService.ClearCartAsync();
+        //await authProvider.MarkUserAsLoggedOut(); // clear auth state
         Navigation.NavigateTo("/");
     }
 }

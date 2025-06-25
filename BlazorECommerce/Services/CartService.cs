@@ -8,14 +8,16 @@ public class CartService : ICartService
     private readonly CartState _cartState;
     private readonly ApiClient _apiClient;
     private readonly CustomAuthenticationStateProvider _authProvider;
+    private readonly OrderService _orderService;
 
     private string _userName = string.Empty;
 
-    public CartService(CartState cartState, ApiClient apiClient, AuthenticationStateProvider authProvider)
+    public CartService(CartState cartState, ApiClient apiClient, AuthenticationStateProvider authProvider, OrderService orderService)
     {
         _cartState = cartState;
         _apiClient = apiClient;
         _authProvider = (CustomAuthenticationStateProvider)authProvider;
+        _orderService = orderService;
     }
 
     public async Task<List<CartItemDto>> GetCartItemsAsync()
@@ -108,6 +110,22 @@ public class CartService : ICartService
 
     }
 
+    public async Task PlaceOrderAsync()
+    {
+        await EnsureUserNameAsync();
+        var cartItems = await GetCartItemsAsync();
+
+        var order = new OrderDto
+        {
+            UserName = _userName,
+            TotalPrice = cartItems.Sum(x => x.Price * x.Quantity)
+        };
+
+        await _orderService.CheckoutOrderAsync(order);
+        await ClearCartAsync();
+    }
+
+
     private async Task<string?> GetAccessTokenAsync()
     {
         var authState = await _authProvider.GetAuthenticationStateAsync();
@@ -136,10 +154,14 @@ public class CartService : ICartService
     }
     private async Task EnsureUserNameAsync()
     {
+        if (string.IsNullOrEmpty(_userName))
+        {
+            var authState = await _authProvider.GetAuthenticationStateAsync();
+            _userName = authState.User.Identity?.Name ?? string.Empty;
+        }
         if(string.IsNullOrEmpty(_userName))
         {
-            _userName = "srielango@gmail.com";
+            throw new InvalidOperationException("User is not authenticated.");
         }
-        await Task.CompletedTask;
     }
 }

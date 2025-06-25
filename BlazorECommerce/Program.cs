@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -14,7 +15,6 @@ builder.Services.AddRazorComponents()
 builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 builder.Services.AddMudServices();
 builder.Services.AddHttpClient<ApiClient>(client =>
@@ -28,6 +28,7 @@ builder.Services.AddSingleton<CartState>();
 builder.Services.AddScoped<UserService>();
 
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<OrderService>();
 
 var app = builder.Build();
 
